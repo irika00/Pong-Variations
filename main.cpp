@@ -1,6 +1,12 @@
 #include "CS3113/cs3113.h"
 
 // Global Constants
+// constexpr int SCREEN_WIDTH  = 2000 / 2,
+//               SCREEN_HEIGHT = 1300 / 2,
+//               FPS           = 60,
+//               SIZE          = 500 / 2,
+//               SPEED         = 200;
+
 constexpr int SCREEN_WIDTH  = 1600 / 2,
               SCREEN_HEIGHT = 900 / 2,
               FPS           = 60,
@@ -14,8 +20,8 @@ constexpr Vector2 ORIGIN         = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 },
                   RUPEE_INIT_POS = { ORIGIN.x + 250.0f, ORIGIN.y };
 
 // Images owned by Nintendo — please don't sue me.
-constexpr char LINK_FP[]  = "assets/game/awakening-link.png";
-constexpr char RUPEE_FP[] = "assets/game/awakening-rupee.png";
+constexpr char LINK_FP[]  = "assets/pink_note.png";
+constexpr char RUPEE_FP[] = "assets/Piano.png";
 
 // Global Variables
 AppStatus gAppStatus     = RUNNING;
@@ -28,7 +34,9 @@ Vector2 gLinkPosition  = INIT_POS,
 
         gRupeePosition = RUPEE_INIT_POS,
         gRupeeMovement = { 0.0f, 0.0f },
-        gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
+        gRupeeScale    = { BASE_SIZE.x, BASE_SIZE.y},
+        //gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
+        //gRupeeScale    = { BASE_SIZE.x / 3.5f, BASE_SIZE.y / 3.5f},
 
         gMousePosition = GetMousePosition();
 
