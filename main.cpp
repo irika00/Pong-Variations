@@ -1,5 +1,23 @@
 #include "CS3113/cs3113.h"
 
+/**
+
+* Author: Irika Aggarwal
+
+* Assignment: Pong Clone
+
+* Date due: 10/14/2026
+
+* I pledge that I have completed this assignment without
+
+* collaborating with anyone else, in conformance with the
+
+* NYU School of Engineering Policies and Procedures on
+
+* Academic Misconduct.
+
+**/
+
 // Global Constants
 constexpr int SCREEN_WIDTH  = 2100 / 2,
               SCREEN_HEIGHT = 1500 / 2,
@@ -135,10 +153,10 @@ void initialise()
     float scale_1 = fminf(BASE_SIZE.x / gLinkTexture.width, BASE_SIZE.y / gLinkTexture.height);
     gLinkScale = { gLinkTexture.width * scale_1, gLinkTexture.height * scale_1 };
     float scale_2 = fminf(BASE_SIZE.x / gRupeeTexture.width, BASE_SIZE.y / gRupeeTexture.height);
-    gRupeeScale = { gRupeeTexture.width * scale_2, gRupeeTexture.height * scale_2 };
-    gLinkScale = {0.35f*(float)gLinkTexture.width, 0.35f*(float)gLinkTexture.height };
+    gRupeeScale = { gRupeeTexture.width * scale_2 *1.2f, gRupeeTexture.height * scale_2 *1.2f};
+    gLinkScale = {0.25f*(float)gLinkTexture.width, 0.25f*(float)gLinkTexture.height };
     float scale_3 = fminf(BASE_SIZE.x / gPiano2Texture.width, BASE_SIZE.y / gPiano2Texture.height);
-    gPiano2Scale = { gPiano2Texture.width * scale_3, gPiano2Texture.height * scale_3 };
+    gPiano2Scale = { gPiano2Texture.width * scale_3 *1.2f, gPiano2Texture.height * scale_3 *1.2f};
 
 
 
