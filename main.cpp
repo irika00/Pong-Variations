@@ -49,7 +49,7 @@ AppStatus gAppStatus     = RUNNING;
 float     gAngle         = 0.0f,
           gPreviousTicks = 0.0f;
 
-Vector2 gLinkPosition  = INIT_POS,
+Vector2 gLinkPosition  = ORIGIN,
         gLinkMovement  = { 0.0f, 0.0f },
         gLinkScale     = { BASE_SIZE.x, BASE_SIZE.y},
 
@@ -72,6 +72,7 @@ Music gBGM;
 Sound gRupeeSound;
 
 unsigned int gStartTime;
+Vector2 gLinkVelocity = { -1.0f, -0.5f };   // x: moves left, y: moves down 
 
 // Function Declarations
 void initialise();
@@ -207,15 +208,42 @@ void update()
         gPiano2Position.y + SPEED * gPiano2Movement.y * deltaTime
     };
 
+    gLinkPosition = {
+        gLinkPosition.x+ SPEED * deltaTime * gLinkVelocity.x,
+        gLinkPosition.y + SPEED * deltaTime * gLinkVelocity.y
+    };
+
+
     if (isColliding(
         &gLinkPosition,  &gLinkScale,
         &gRupeePosition, &gRupeeScale
     ))
     {
-        printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
-        if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
+        gLinkVelocity.x = -gLinkVelocity.x;
+        // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
+        // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
     }
 
+    if (isColliding(
+        &gLinkPosition,  &gLinkScale,
+        &gPiano2Position, &gPiano2Scale
+    ))
+    {
+        gLinkVelocity.x = -gLinkVelocity.x;
+        // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
+        // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
+    }
+
+    if (gLinkPosition.y - (gLinkScale.y / 2.0f) < 0.0f)               
+    {
+        gLinkPosition.y = gLinkScale.y / 2.0f;                     
+        gLinkVelocity.y = -gLinkVelocity.y; 
+    }
+    else if (gLinkPosition.y + (gLinkScale.y / 2.0f) > SCREEN_HEIGHT) 
+    {
+        gLinkPosition.y = SCREEN_HEIGHT - (gLinkScale.y / 2.0f);
+        gLinkVelocity.y = -gLinkVelocity.y;
+    }
     UpdateMusicStream(gBGM);
 }
 
