@@ -31,22 +31,28 @@ constexpr int SCREEN_WIDTH  = 2100 / 2,
 //               SIZE          = 500 / 2,
 //               SPEED         = 200;
 
-constexpr char    BG_COLOUR[]    = "#F8F1C8";
+constexpr char    BG_COLOUR[]    = "#B3ECFF";
 constexpr Vector2 ORIGIN         = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 },
                   BASE_SIZE      = { static_cast<float>(SIZE), static_cast<float>(SIZE) },
                   INIT_POS       = { ORIGIN.x - 200.0f, ORIGIN.y },
                   RUPEE_INIT_POS = { 21.f, ORIGIN.y }, //{ ORIGIN.x + 250.0f, ORIGIN.y };
-                  PIANO2_INIT_POS = { ORIGIN.x + 505.f, ORIGIN.y };
+                  PIANO2_INIT_POS = { ORIGIN.x + 505.f, ORIGIN.y },
+                  SCORE_INIT_POS = { 400.f, ORIGIN.y + 100.0f };
 
 constexpr char LINK_FP[]  = "assets/pink_note.png";
 constexpr char RUPEE_FP[] = "assets/Piano.png";
 constexpr char PIANO2[] = "assets/Piano2.png";
-
+constexpr char NUMBER[] = "assets/numbe1r.png";
 
 // Global Variables
 AppStatus gAppStatus     = RUNNING;
 float     gAngle         = 0.0f,
           gPreviousTicks = 0.0f;
+
+int gScore = 0;
+int gScore1 = 0;
+int gScore2 = 0;
+
 
 Vector2 gLinkPosition  = ORIGIN,
         gLinkMovement  = { 0.0f, 0.0f },
@@ -58,6 +64,9 @@ Vector2 gLinkPosition  = ORIGIN,
         gPiano2Position = PIANO2_INIT_POS,
         gPiano2Movement = { 0.0f, 0.0f },
         gPiano2Scale    = { BASE_SIZE.x, BASE_SIZE.y},
+        gScorePosition = SCORE_INIT_POS,
+        gScoreMovement = { 0.0f, 0.0f },
+        gScoreScale    = { BASE_SIZE.x, BASE_SIZE.y},
         //gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
         //gRupeeScale    = { BASE_SIZE.x / 3.5f, BASE_SIZE.y / 3.5f},
 
@@ -66,12 +75,16 @@ Vector2 gLinkPosition  = ORIGIN,
 Texture2D gLinkTexture;
 Texture2D gRupeeTexture;
 Texture2D gPiano2Texture;
+Texture2D gScoreTexture;
 
 Music gBGM;
 Sound gRupeeSound;
 
 unsigned int gStartTime;
 Vector2 gLinkVelocity = { -1.0f, -0.5f };   // x: moves left, y: moves down 
+enum PLAYERS { ONE, TWO };
+PLAYERS gCurrPlayers = TWO;
+ 
 
 // Function Declarations
 void initialise();
@@ -148,6 +161,7 @@ void initialise()
     gLinkTexture  = LoadTexture(LINK_FP);
     gRupeeTexture = LoadTexture(RUPEE_FP);
     gPiano2Texture = LoadTexture(PIANO2);
+    gScoreTexture = LoadTexture(NUMBER);
 
     
     float scale_1 = fminf(BASE_SIZE.x / gLinkTexture.width, BASE_SIZE.y / gLinkTexture.height);
@@ -157,6 +171,8 @@ void initialise()
     gLinkScale = {0.25f*(float)gLinkTexture.width, 0.25f*(float)gLinkTexture.height };
     float scale_3 = fminf(BASE_SIZE.x / gPiano2Texture.width, BASE_SIZE.y / gPiano2Texture.height);
     gPiano2Scale = { gPiano2Texture.width * scale_3 *1.2f, gPiano2Texture.height * scale_3 *1.2f};
+    float scale_4 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gLinkTexture.height);
+    gScoreScale = { gScoreTexture.width * scale_4*2.0f, gScoreTexture.height * scale_4 *2.0f };
 
 
 
@@ -175,15 +191,42 @@ void processInput()
     gPiano2Movement = { 0.0f, 0.0f };
 
 
-    if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
-    else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
+    if (gCurrPlayers == TWO) 
+    {
+        if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
+        else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
 
-    if      (IsKeyDown(KEY_UP)) gPiano2Movement.y = -1;
-    else if (IsKeyDown(KEY_DOWN)) gPiano2Movement.y =  1;
+        if      (IsKeyDown(KEY_UP)) gPiano2Movement.y = -1;
+        else if (IsKeyDown(KEY_DOWN)) gPiano2Movement.y =  1;
+    }
+    else
+    {
+        if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
+        else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
 
+    }
+
+    
     // to avoid faster diagonal speed
     if (GetLength(&gRupeeMovement) > 1.0f) Normalise(&gRupeeMovement);
     if (GetLength(&gPiano2Movement) > 1.0f) Normalise(&gPiano2Movement);
+
+
+    //switch to single or double player mode
+    if (IsKeyDown(KEY_T))
+    {
+        if (gCurrPlayers == ONE)
+        {
+            gCurrPlayers = TWO;
+
+        }
+        else
+        {
+            gCurrPlayers = ONE;
+
+        }
+        
+    }
 
     if (IsKeyPressed(KEY_Q) || WindowShouldClose()) gAppStatus = TERMINATED;
 }
@@ -264,6 +307,8 @@ void render()
     renderObject(&gRupeeTexture, &gRupeePosition, &gRupeeScale);
 
     renderObject(&gPiano2Texture, &gPiano2Position, &gPiano2Scale);
+
+    renderObject(&gScoreTexture, &gScorePosition, &gScoreScale);
 
     EndDrawing();
 }
