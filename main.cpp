@@ -6,7 +6,7 @@
 
 * Assignment: Pong Clone
 
-* Date due: 10/14/2026
+* Date due: 10/16/2026
 
 * I pledge that I have completed this assignment without
 
@@ -38,7 +38,6 @@ constexpr Vector2 ORIGIN         = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 },
                   RUPEE_INIT_POS = { 21.f, ORIGIN.y }, //{ ORIGIN.x + 250.0f, ORIGIN.y };
                   PIANO2_INIT_POS = { ORIGIN.x + 505.f, ORIGIN.y };
 
-// Images owned by Nintendo — please don't sue me.
 constexpr char LINK_FP[]  = "assets/pink_note.png";
 constexpr char RUPEE_FP[] = "assets/Piano.png";
 constexpr char PIANO2[] = "assets/Piano2.png";
@@ -243,6 +242,12 @@ void update()
     {
         gLinkPosition.y = SCREEN_HEIGHT - (gLinkScale.y / 2.0f);
         gLinkVelocity.y = -gLinkVelocity.y;
+    }
+
+    if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f ||
+    gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH)
+    {
+        gLinkPosition = ORIGIN;
     }
     UpdateMusicStream(gBGM);
 }
