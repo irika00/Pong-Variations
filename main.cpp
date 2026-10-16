@@ -37,19 +37,22 @@ constexpr Vector2 ORIGIN         = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 },
                   INIT_POS       = { ORIGIN.x - 200.0f, ORIGIN.y },
                   RUPEE_INIT_POS = { 21.f, ORIGIN.y }, //{ ORIGIN.x + 250.0f, ORIGIN.y };
                   PIANO2_INIT_POS = { ORIGIN.x + 505.f, ORIGIN.y },
-                  SCORE_INIT_POS = { 400.f, ORIGIN.y + 100.0f };
+                  SCORE_INIT_POS = { 200.f, 100.0f},
+                  SECOND_SCORE_INIT_POS = { 800.f, 100.0f};
 
 constexpr char LINK_FP[]  = "assets/pink_note.png";
 constexpr char RUPEE_FP[] = "assets/Piano.png";
 constexpr char PIANO2[] = "assets/Piano2.png";
-constexpr char NUMBER[] = "assets/numbe1r.png";
+constexpr char NUMBER[] = "assets/number0.png";
+constexpr char NUMBER_1[] = "assets/number1.png";
+constexpr char NUMBER_2[] = "assets/number2.png";
+constexpr char NUMBER_3[] = "assets/number3.png";
 
 // Global Variables
 AppStatus gAppStatus     = RUNNING;
 float     gAngle         = 0.0f,
           gPreviousTicks = 0.0f;
 
-int gScore = 0;
 int gScore1 = 0;
 int gScore2 = 0;
 
@@ -67,6 +70,9 @@ Vector2 gLinkPosition  = ORIGIN,
         gScorePosition = SCORE_INIT_POS,
         gScoreMovement = { 0.0f, 0.0f },
         gScoreScale    = { BASE_SIZE.x, BASE_SIZE.y},
+        gSecondScorePosition =  SECOND_SCORE_INIT_POS,
+        gSecondScoreMovement = { 0.0f, 0.0f },
+        gSecondScoreScale    = { BASE_SIZE.x, BASE_SIZE.y},
         //gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
         //gRupeeScale    = { BASE_SIZE.x / 3.5f, BASE_SIZE.y / 3.5f},
 
@@ -76,6 +82,12 @@ Texture2D gLinkTexture;
 Texture2D gRupeeTexture;
 Texture2D gPiano2Texture;
 Texture2D gScoreTexture;
+Texture2D gSecondScoreTexture;
+Texture2D gNumber0Texture;
+Texture2D gNumber1Texture;
+Texture2D gNumber2Texture;
+Texture2D gNumber3Texture;
+
 
 Music gBGM;
 Sound gRupeeSound;
@@ -95,6 +107,35 @@ void shutdown();
 bool isColliding(const Vector2 *positionA, const Vector2 *scaleA, const Vector2 *positionB, const Vector2 *scaleB);
 
 // Function Definitions
+
+bool changeScore(Texture2D &texture, int num)
+{  
+    if (num == 0)
+    {
+        texture = gNumber0Texture;
+    }
+    else if (num == 1)
+   {
+    
+    texture = gNumber1Texture;
+
+   }
+   else if (num == 2)
+   {
+
+    texture = gNumber2Texture;
+
+   }
+   else if (num == 3)
+   {
+
+    texture = gNumber3Texture;
+
+   }
+
+   return true;
+
+}
 
 
 /**
@@ -162,6 +203,11 @@ void initialise()
     gRupeeTexture = LoadTexture(RUPEE_FP);
     gPiano2Texture = LoadTexture(PIANO2);
     gScoreTexture = LoadTexture(NUMBER);
+    gSecondScoreTexture = LoadTexture(NUMBER);
+    gNumber0Texture = LoadTexture(NUMBER);
+    gNumber1Texture = LoadTexture(NUMBER_1);
+    gNumber2Texture = LoadTexture(NUMBER_2);
+    gNumber3Texture = LoadTexture(NUMBER_3);
 
     
     float scale_1 = fminf(BASE_SIZE.x / gLinkTexture.width, BASE_SIZE.y / gLinkTexture.height);
@@ -173,6 +219,9 @@ void initialise()
     gPiano2Scale = { gPiano2Texture.width * scale_3 *1.2f, gPiano2Texture.height * scale_3 *1.2f};
     float scale_4 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gLinkTexture.height);
     gScoreScale = { gScoreTexture.width * scale_4*2.0f, gScoreTexture.height * scale_4 *2.0f };
+    float scale_5 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gLinkTexture.height);
+    gSecondScoreScale = { gSecondScoreTexture.width * scale_5*2.0f, gSecondScoreTexture.height * scale_5 *2.0f };
+
 
 
 
@@ -213,18 +262,24 @@ void processInput()
 
 
     //switch to single or double player mode
-    if (IsKeyDown(KEY_T))
+    if (IsKeyPressed(KEY_T))
     {
         if (gCurrPlayers == ONE)
         {
             gCurrPlayers = TWO;
+            gScore1 = 0;
+            gScore2 = 0;   
 
         }
         else
         {
             gCurrPlayers = ONE;
+            gScore1 = 0;
+            gScore2 = 0;
 
         }
+        gScoreTexture = gNumber0Texture;
+        gSecondScoreTexture = gNumber0Texture;
         
     }
 
@@ -287,11 +342,63 @@ void update()
         gLinkVelocity.y = -gLinkVelocity.y;
     }
 
-    if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f ||
-    gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH)
+    // if (gCurrPlayers == ONE)
+    // {
+        
+    //     if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f) //make ball reappear 
+    //     {
+    //         gLinkPosition = ORIGIN;
+    //     }
+    //     else if (gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH) //make ball reappear 
+    //     {
+    //         gLinkPosition = ORIGIN;
+    //         gScore += 1;
+    //         if (gScore <= 3)
+    //         {
+    //             changeScore(gScoreTexture, gScore);
+    //         }
+    //         else
+    //         {
+    //             gAppStatus = TERMINATED;
+    //         }
+    //         DrawText(TextFormat("Score: %d", gScore), 50, 50, 50, BLACK);
+    //     }
+
+    // }
+
+
+    if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f) //make ball reappear 
     {
         gLinkPosition = ORIGIN;
+        gScore2 += 1;
+        if (gScore2 <= 3)
+        {
+            changeScore(gSecondScoreTexture, gScore2);
+        }
+
+        else
+        {
+            gAppStatus = TERMINATED;
+
+        }
+        
     }
+    else if (gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH) //make ball reappear 
+    {
+        gLinkPosition = ORIGIN;
+        gScore1 += 1;
+        if (gScore1 <= 3)
+        {
+            changeScore(gScoreTexture, gScore1);
+        }
+        else
+        {
+            gAppStatus = TERMINATED;
+        }
+        
+    }
+
+
     UpdateMusicStream(gBGM);
 }
 
@@ -301,7 +408,7 @@ void render()
     ClearBackground(ColorFromHex(BG_COLOUR));
 
     // Render Link
-    renderObject(&gLinkTexture, &gLinkPosition, &gLinkScale);
+    
 
     // Render the rupee
     renderObject(&gRupeeTexture, &gRupeePosition, &gRupeeScale);
@@ -309,6 +416,8 @@ void render()
     renderObject(&gPiano2Texture, &gPiano2Position, &gPiano2Scale);
 
     renderObject(&gScoreTexture, &gScorePosition, &gScoreScale);
+    renderObject(&gSecondScoreTexture, &gSecondScorePosition, &gSecondScoreScale);
+    renderObject(&gLinkTexture, &gLinkPosition, &gLinkScale);
 
     EndDrawing();
 }
