@@ -23,7 +23,8 @@ constexpr int SCREEN_WIDTH  = 2100 / 2,
               SCREEN_HEIGHT = 1500 / 2,
               FPS           = 60,
               SIZE          = 500 / 2,
-              SPEED         = 200;
+              SPEED         = 200,
+              MAX_BALLS = 5;
 
 // constexpr int SCREEN_WIDTH  = 1600 / 2,
 //               SCREEN_HEIGHT = 900 / 2,
@@ -47,6 +48,13 @@ constexpr char NUMBER[] = "assets/number0.png";
 constexpr char NUMBER_1[] = "assets/number1.png";
 constexpr char NUMBER_2[] = "assets/number2.png";
 constexpr char NUMBER_3[] = "assets/number3.png";
+constexpr char BLUE_NOTE[] = "assets/blue_note.png";
+constexpr char ORANGE_NOTE[] = "assets/orange_note.png";
+
+Vector2 startVel[MAX_BALLS] = {
+    { -0.3f,  0.15f }, { 0.3f, -0.2f }, { -0.25f, -0.1f },
+    {  0.2f,  0.25f }, { -0.35f, 0.05f }
+};
 
 // Global Variables
 AppStatus gAppStatus     = RUNNING;
@@ -55,6 +63,7 @@ float     gAngle         = 0.0f,
 
 int gScore1 = 0;
 int gScore2 = 0;
+int gBallCount = 1;
 
 
 Vector2 gLinkPosition  = ORIGIN,
@@ -73,6 +82,9 @@ Vector2 gLinkPosition  = ORIGIN,
         gSecondScorePosition =  SECOND_SCORE_INIT_POS,
         gSecondScoreMovement = { 0.0f, 0.0f },
         gSecondScoreScale    = { BASE_SIZE.x, BASE_SIZE.y},
+        gBallPosition[MAX_BALLS],
+        gBallVelocity[MAX_BALLS],
+        gBallScale[MAX_BALLS],
         //gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
         //gRupeeScale    = { BASE_SIZE.x / 3.5f, BASE_SIZE.y / 3.5f},
 
@@ -87,6 +99,9 @@ Texture2D gNumber0Texture;
 Texture2D gNumber1Texture;
 Texture2D gNumber2Texture;
 Texture2D gNumber3Texture;
+Texture2D gBlueNote;
+Texture2D gOrangeNote;
+Texture2D gBallTexture[MAX_BALLS];
 
 
 Music gBGM;
@@ -208,7 +223,15 @@ void initialise()
     gNumber1Texture = LoadTexture(NUMBER_1);
     gNumber2Texture = LoadTexture(NUMBER_2);
     gNumber3Texture = LoadTexture(NUMBER_3);
+    gBlueNote = LoadTexture(BLUE_NOTE);
+    gOrangeNote = LoadTexture(ORANGE_NOTE);
 
+    gBallTexture[0] = gLinkTexture;     // pink
+    gBallTexture[1] = gBlueNote;
+    gBallTexture[2] = gOrangeNote;
+    gBallTexture[3] = gLinkTexture;    
+    gBallTexture[4] = gBlueNote;
+    
     
     float scale_1 = fminf(BASE_SIZE.x / gLinkTexture.width, BASE_SIZE.y / gLinkTexture.height);
     gLinkScale = { gLinkTexture.width * scale_1, gLinkTexture.height * scale_1 };
@@ -222,7 +245,13 @@ void initialise()
     float scale_5 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gLinkTexture.height);
     gSecondScoreScale = { gSecondScoreTexture.width * scale_5*2.0f, gSecondScoreTexture.height * scale_5 *2.0f };
 
+    for (int i = 0; i < MAX_BALLS; i++)
+    {
+        gBallPosition[i] = ORIGIN;
+        gBallVelocity[i] = startVel[i];
+        gBallScale[i] = gLinkScale;
 
+    }
 
 
     gBGM = LoadMusicStream("assets/game/ost.mp3");
@@ -239,7 +268,12 @@ void processInput()
     gRupeeMovement = { 0.0f, 0.0f };
     gPiano2Movement = { 0.0f, 0.0f };
 
-
+    if (IsKeyPressed(KEY_ONE))   gBallCount = 1;
+    if (IsKeyPressed(KEY_TWO))   gBallCount = 2;
+    if (IsKeyPressed(KEY_THREE)) gBallCount = 3;
+    if (IsKeyPressed(KEY_FOUR))  gBallCount = 4;
+    if (IsKeyPressed(KEY_FIVE))  gBallCount = 5;
+    
     if (gCurrPlayers == TWO) 
     {
         if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
@@ -253,7 +287,7 @@ void processInput()
         if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
         else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
 
-        float diff = gLinkPosition.y - gPiano2Position.y;   
+        float diff = gBallPosition[0].y - gBallPosition[0].y;   
 
         if      (diff >  10.0f) gPiano2Movement.y =  1.0f;  // note is below, move down
         else if (diff < -10.0f) gPiano2Movement.y = -1.0f;  // note is above, move up
@@ -298,7 +332,7 @@ void update()
     float deltaTime = ticks - gPreviousTicks;
     gPreviousTicks  = ticks;
 
-    gMousePosition = GetMousePosition();
+    //gMousePosition = GetMousePosition();
 
     gRupeePosition = {
         gRupeePosition.x + SPEED * gRupeeMovement.x * deltaTime,
@@ -308,11 +342,6 @@ void update()
     gPiano2Position = {
         gPiano2Position.x + SPEED * gPiano2Movement.x * deltaTime,
         gPiano2Position.y + SPEED * gPiano2Movement.y * deltaTime
-    };
-
-    gLinkPosition = {
-        gLinkPosition.x+ SPEED * deltaTime * gLinkVelocity.x,
-        gLinkPosition.y + SPEED * deltaTime * gLinkVelocity.y
     };
 
     // to keep piano on screen
@@ -328,69 +357,171 @@ void update()
     else if (gPiano2Position.y + halfRight > SCREEN_HEIGHT)
         gPiano2Position.y = SCREEN_HEIGHT - halfRight;
 
+    for (int i = 0; i < gBallCount; i++ ){
 
-    //collisions
-    if (isColliding(
-        &gLinkPosition,  &gLinkScale,
-        &gRupeePosition, &gRupeeScale
-    ) && gLinkVelocity.x < 0.0f)
-    {
-        gLinkVelocity.x = -gLinkVelocity.x;
-        // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
-        // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
-    }
+        gBallPosition[i] = {
+            gBallPosition[i].x+ SPEED * deltaTime * gBallVelocity[i].x,
+            gBallPosition[i].y + SPEED * deltaTime * gBallVelocity[i].y
+        };
 
-    if (isColliding(
-        &gLinkPosition,  &gLinkScale,
-        &gPiano2Position, &gPiano2Scale
-    ) && gLinkVelocity.x > 0.0f)
-    {
-        gLinkVelocity.x = -gLinkVelocity.x;
-        // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
-        // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
-    }
 
-    if (gLinkPosition.y - (gLinkScale.y / 2.0f) < 0.0f)               
-    {
-        gLinkPosition.y = gLinkScale.y / 2.0f;                     
-        gLinkVelocity.y = -gLinkVelocity.y; 
-    }
-    else if (gLinkPosition.y + (gLinkScale.y / 2.0f) > SCREEN_HEIGHT) 
-    {
-        gLinkPosition.y = SCREEN_HEIGHT - (gLinkScale.y / 2.0f);
-        gLinkVelocity.y = -gLinkVelocity.y;
-    }
 
-    if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f) //make ball reappear 
-    {
-        gLinkPosition = ORIGIN;
-        gScore2 += 1;
-        if (gScore2 <= 3)
+        //collisions
+        if (isColliding(
+            &gBallPosition[i],  &gBallScale[i],
+            &gRupeePosition, &gRupeeScale
+        ) && gBallVelocity[i].x < 0.0f)
         {
-            changeScore(gSecondScoreTexture, gScore2);
+            gBallVelocity[i].x = -gBallVelocity[i].x;
+            // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
+            // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
         }
 
-        else
+        if (isColliding(
+            &gBallPosition[i],  &gBallScale[i],
+            &gPiano2Position, &gPiano2Scale
+        ) && gBallVelocity[i].x > 0.0f)
         {
-            gAppStatus = TERMINATED;
-
+            gBallVelocity[i].x = -gBallVelocity[i].x;
+            // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
+            // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
         }
+
+        if (gBallPosition[i].y - (gBallPosition[i].y / 2.0f) < 0.0f)               
+        {
+            gBallPosition[i].y = gBallPosition[i].y / 2.0f;                     
+            gBallPosition[i].y = -gBallPosition[i].y; 
+        }
+        else if (gBallPosition[i].y + (gBallPosition[i].y / 2.0f) > SCREEN_HEIGHT) 
+        {
+            gBallPosition[i].y = SCREEN_HEIGHT - (gBallScale[i].y / 2.0f);
+            gBallVelocity[i].y = -gBallVelocity[i].y;
+        }
+
+        if (gBallPosition[i].x + gBallScale[i].x / 2.0f < 0.0f) //make ball reappear 
+        {
+            gBallPosition[i] = ORIGIN;
+            gScore2 += 1;
+            if (gScore2 <= 3)
+            {
+                changeScore(gSecondScoreTexture, gScore2);
+            }
+
+            else
+            {
+                gAppStatus = TERMINATED;
+
+            }
+            
+        }
+        else if (gBallPosition[i].x - gBallScale[i].x / 2.0f > SCREEN_WIDTH) //make ball reappear 
+        {
+            gBallPosition[i] = ORIGIN;
+            gScore1 += 1;
+            if (gScore1 <= 3)
+            {
+                changeScore(gScoreTexture, gScore1);
+            }
+            else
+            {
+                gAppStatus = TERMINATED;
+            }
+            
+        }
+
+    }
+
+    // gRupeePosition = {
+    //     gRupeePosition.x + SPEED * gRupeeMovement.x * deltaTime,
+    //     gRupeePosition.y + SPEED * gRupeeMovement.y * deltaTime
+    // };
+
+    // gPiano2Position = {
+    //     gPiano2Position.x + SPEED * gPiano2Movement.x * deltaTime,
+    //     gPiano2Position.y + SPEED * gPiano2Movement.y * deltaTime
+    // };
+
+    // gLinkPosition = {
+    //     gLinkPosition.x+ SPEED * deltaTime * gLinkVelocity.x,
+    //     gLinkPosition.y + SPEED * deltaTime * gLinkVelocity.y
+    // };
+
+    // // to keep piano on screen
+    // float halfLeft = gRupeeScale.y / 2.0f;
+    // if (gRupeePosition.y - halfLeft < 0.0f)
+    //     gRupeePosition.y = halfLeft;
+    // else if (gRupeePosition.y + halfLeft > SCREEN_HEIGHT)
+    //     gRupeePosition.y = SCREEN_HEIGHT - halfLeft;
+
+    // float halfRight = gPiano2Scale.y / 2.0f;
+    // if (gPiano2Position.y - halfRight < 0.0f)
+    //     gPiano2Position.y = halfRight;
+    // else if (gPiano2Position.y + halfRight > SCREEN_HEIGHT)
+    //     gPiano2Position.y = SCREEN_HEIGHT - halfRight;
+
+
+    // //collisions
+    // if (isColliding(
+    //     &gLinkPosition,  &gLinkScale,
+    //     &gRupeePosition, &gRupeeScale
+    // ) && gLinkVelocity.x < 0.0f)
+    // {
+    //     gLinkVelocity.x = -gLinkVelocity.x;
+    //     // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
+    //     // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
+    // }
+
+    // if (isColliding(
+    //     &gLinkPosition,  &gLinkScale,
+    //     &gPiano2Position, &gPiano2Scale
+    // ) && gLinkVelocity.x > 0.0f)
+    // {
+    //     gLinkVelocity.x = -gLinkVelocity.x;
+    //     // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
+    //     // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
+    // }
+
+    // if (gLinkPosition.y - (gLinkScale.y / 2.0f) < 0.0f)               
+    // {
+    //     gLinkPosition.y = gLinkScale.y / 2.0f;                     
+    //     gLinkVelocity.y = -gLinkVelocity.y; 
+    // }
+    // else if (gLinkPosition.y + (gLinkScale.y / 2.0f) > SCREEN_HEIGHT) 
+    // {
+    //     gLinkPosition.y = SCREEN_HEIGHT - (gLinkScale.y / 2.0f);
+    //     gLinkVelocity.y = -gLinkVelocity.y;
+    // }
+
+    // if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f) //make ball reappear 
+    // {
+    //     gLinkPosition = ORIGIN;
+    //     gScore2 += 1;
+    //     if (gScore2 <= 3)
+    //     {
+    //         changeScore(gSecondScoreTexture, gScore2);
+    //     }
+
+    //     else
+    //     {
+    //         gAppStatus = TERMINATED;
+
+    //     }
         
-    }
-    else if (gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH) //make ball reappear 
-    {
-        gLinkPosition = ORIGIN;
-        gScore1 += 1;
-        if (gScore1 <= 3)
-        {
-            changeScore(gScoreTexture, gScore1);
-        }
-        else
-        {
-            gAppStatus = TERMINATED;
-        }
+    // }
+    // else if (gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH) //make ball reappear 
+    // {
+    //     gLinkPosition = ORIGIN;
+    //     gScore1 += 1;
+    //     if (gScore1 <= 3)
+    //     {
+    //         changeScore(gScoreTexture, gScore1);
+    //     }
+    //     else
+    //     {
+    //         gAppStatus = TERMINATED;
+    //     }
         
-    }
+    // }
 
 
     UpdateMusicStream(gBGM);
@@ -401,15 +532,16 @@ void render()
     BeginDrawing();
     ClearBackground(ColorFromHex(BG_COLOUR));
 
-    // Render Link
     
-
-    // Render the rupee
     renderObject(&gRupeeTexture, &gRupeePosition, &gRupeeScale);
     renderObject(&gPiano2Texture, &gPiano2Position, &gPiano2Scale);
     renderObject(&gScoreTexture, &gScorePosition, &gScoreScale);
     renderObject(&gSecondScoreTexture, &gSecondScorePosition, &gSecondScoreScale);
-    renderObject(&gLinkTexture, &gLinkPosition, &gLinkScale);
+    // renderObject(&gLinkTexture, &gLinkPosition, &gLinkScale);
+    for (int i = 0; i < gBallCount; i++)
+    {
+    renderObject(&gBallTexture[i], &gBallPosition[i], &gBallScale[i]);
+    }
 
     EndDrawing();
 }
@@ -419,6 +551,10 @@ void shutdown()
     UnloadTexture(gLinkTexture);
     UnloadTexture(gRupeeTexture);
     UnloadTexture(gPiano2Texture);
+    UnloadTexture(gNumber0Texture);
+    UnloadTexture(gNumber1Texture);
+    UnloadTexture(gNumber2Texture);
+    UnloadTexture(gNumber3Texture);
     UnloadMusicStream(gBGM);
     UnloadSound(gRupeeSound);
     CloseAudioDevice();
