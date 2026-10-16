@@ -39,7 +39,8 @@ constexpr Vector2 ORIGIN         = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 },
                   RUPEE_INIT_POS = { 21.f, ORIGIN.y }, //{ ORIGIN.x + 250.0f, ORIGIN.y };
                   PIANO2_INIT_POS = { ORIGIN.x + 505.f, ORIGIN.y },
                   SCORE_INIT_POS = { 200.f, 100.0f},
-                  SECOND_SCORE_INIT_POS = { 800.f, 100.0f};
+                  SECOND_SCORE_INIT_POS = { 800.f, 100.0f},
+                  END_SCREEN_POS = ORIGIN;
 
 constexpr char LINK_FP[]  = "assets/pink_note.png";
 constexpr char RUPEE_FP[] = "assets/Piano.png";
@@ -90,6 +91,8 @@ Vector2 gLinkPosition  = ORIGIN,
         gBallPosition[MAX_BALLS],
         gBallVelocity[MAX_BALLS],
         gBallScale[MAX_BALLS],
+        gEndScreenPosition = END_SCREEN_POS,
+
         //gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
         //gRupeeScale    = { BASE_SIZE.x / 3.5f, BASE_SIZE.y / 3.5f},
 
@@ -106,6 +109,11 @@ Texture2D gNumber2Texture;
 Texture2D gNumber3Texture;
 Texture2D gBlueNote;
 Texture2D gOrangeNote;
+Texture2D gEndScreen;
+Texture2D gYouWon;
+Texture2D gYouLost;
+Texture2D gPlayer1Won;
+Texture2D gPlayer2Won;
 Texture2D gBallTexture[MAX_BALLS];
 
 
@@ -127,6 +135,39 @@ void shutdown();
 bool isColliding(const Vector2 *positionA, const Vector2 *scaleA, const Vector2 *positionB, const Vector2 *scaleB);
 
 // Function Definitions
+
+bool endGame(int &gScore, PLAYERS &players)
+{
+    if (players == ONE)
+    {
+        if (gScore1 > 3)
+        {
+            gEndScreen = gYouWon;
+
+        }
+        else
+        {
+            gEndScreen = gYouLost;
+
+        }
+
+    }
+    else
+    {
+        if (gScore1 > 3)
+        {
+            gEndScreen = gPlayer1Won;
+
+        }
+        else
+        {
+            gEndScreen = gPlayer2Won;
+
+        }
+
+    }
+
+}
 
 bool changeScore(Texture2D &texture, int num)
 {  
@@ -230,6 +271,10 @@ void initialise()
     gNumber3Texture = LoadTexture(NUMBER_3);
     gBlueNote = LoadTexture(BLUE_NOTE);
     gOrangeNote = LoadTexture(ORANGE_NOTE);
+    gYouWon = LoadTexture(YOU_WON);
+    gYouLost = LoadTexture(YOU_LOST);
+    gPlayer1Won = LoadTexture(PLAYER1_WIN);
+    gPlayer2Won = LoadTexture(PLAYER2_WIN);
 
     gBallTexture[0] = gLinkTexture;     // pink
     gBallTexture[1] = gBlueNote;
@@ -551,6 +596,12 @@ void render()
     renderObject(&gBallTexture[i], &gBallPosition[i], &gBallScale[i]);
     }
 
+    if (gAppStatus == TERMINATED)
+    {
+        Vector2 screentex = {static_cast<float> (gEndScreen.height), static_cast<float>(gEndScreen.width)};
+        renderObject(&gEndScreen, &gEndScreenPosition, &screentex);
+    }
+
     EndDrawing();
 }
 
@@ -573,7 +624,7 @@ int main(void)
 {
     initialise();
 
-    while (gAppStatus == RUNNING)
+    while (gAppStatus == RUNNING || gAppStatus == TERMINATED)
     {
         processInput();
         update();
