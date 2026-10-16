@@ -253,6 +253,11 @@ void processInput()
         if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
         else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
 
+        float diff = gLinkPosition.y - gPiano2Position.y;   
+
+        if      (diff >  10.0f) gPiano2Movement.y =  1.0f;  // note is below, move down
+        else if (diff < -10.0f) gPiano2Movement.y = -1.0f;  // note is above, move up
+
     }
 
     
@@ -323,6 +328,8 @@ void update()
     else if (gPiano2Position.y + halfRight > SCREEN_HEIGHT)
         gPiano2Position.y = SCREEN_HEIGHT - halfRight;
 
+
+    //collisions
     if (isColliding(
         &gLinkPosition,  &gLinkScale,
         &gRupeePosition, &gRupeeScale
