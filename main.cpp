@@ -50,10 +50,15 @@ constexpr char NUMBER_2[] = "assets/number2.png";
 constexpr char NUMBER_3[] = "assets/number3.png";
 constexpr char BLUE_NOTE[] = "assets/blue_note.png";
 constexpr char ORANGE_NOTE[] = "assets/orange_note.png";
+constexpr char PLAYER1_WIN[] = "assets/Player1win.png";
+constexpr char PLAYER2_WIN[] = "assets/Player2win.png";
+constexpr char YOU_WON[] = "assets/youwon.png";
+constexpr char YOU_LOST[] = "assets/youlost.png";
+
 
 Vector2 startVel[MAX_BALLS] = {
-    { -0.3f,  0.15f }, { 0.3f, -0.2f }, { -0.25f, -0.1f },
-    {  0.2f,  0.25f }, { -0.35f, 0.05f }
+    { -1.0f,  0.15f }, { 1.0f, -0.2f }, { -1.0f, -0.1f },
+    {  1.2f,  0.25f }, { -0.35f, 1.05f }
 };
 
 // Global Variables
@@ -273,7 +278,7 @@ void processInput()
     if (IsKeyPressed(KEY_THREE)) gBallCount = 3;
     if (IsKeyPressed(KEY_FOUR))  gBallCount = 4;
     if (IsKeyPressed(KEY_FIVE))  gBallCount = 5;
-    
+
     if (gCurrPlayers == TWO) 
     {
         if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
@@ -287,10 +292,13 @@ void processInput()
         if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
         else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
 
-        float diff = gBallPosition[0].y - gBallPosition[0].y;   
+        if (gBallVelocity[0].x > 0.0f)
+        {
+            float diff = gBallPosition[0].y - gPiano2Position.y;
 
-        if      (diff >  10.0f) gPiano2Movement.y =  1.0f;  // note is below, move down
-        else if (diff < -10.0f) gPiano2Movement.y = -1.0f;  // note is above, move up
+            if      (diff >  10.0f) gPiano2Movement.y =  1.0f;
+            else if (diff < -10.0f) gPiano2Movement.y = -1.0f;
+        }
 
     }
 
@@ -387,12 +395,12 @@ void update()
             // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
         }
 
-        if (gBallPosition[i].y - (gBallPosition[i].y / 2.0f) < 0.0f)               
+        if (gBallPosition[i].y - (gBallScale[i].y / 2.0f) < 0.0f)               
         {
             gBallPosition[i].y = gBallPosition[i].y / 2.0f;                     
-            gBallPosition[i].y = -gBallPosition[i].y; 
+            gBallVelocity[i].y = -gBallVelocity[i].y;
         }
-        else if (gBallPosition[i].y + (gBallPosition[i].y / 2.0f) > SCREEN_HEIGHT) 
+        else if (gBallPosition[i].y + gBallScale[i].y / 2.0f > SCREEN_HEIGHT)
         {
             gBallPosition[i].y = SCREEN_HEIGHT - (gBallScale[i].y / 2.0f);
             gBallVelocity[i].y = -gBallVelocity[i].y;
