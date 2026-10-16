@@ -310,11 +310,23 @@ void update()
         gLinkPosition.y + SPEED * deltaTime * gLinkVelocity.y
     };
 
+    // to keep piano on screen
+    float halfLeft = gRupeeScale.y / 2.0f;
+    if (gRupeePosition.y - halfLeft < 0.0f)
+        gRupeePosition.y = halfLeft;
+    else if (gRupeePosition.y + halfLeft > SCREEN_HEIGHT)
+        gRupeePosition.y = SCREEN_HEIGHT - halfLeft;
+
+    float halfRight = gPiano2Scale.y / 2.0f;
+    if (gPiano2Position.y - halfRight < 0.0f)
+        gPiano2Position.y = halfRight;
+    else if (gPiano2Position.y + halfRight > SCREEN_HEIGHT)
+        gPiano2Position.y = SCREEN_HEIGHT - halfRight;
 
     if (isColliding(
         &gLinkPosition,  &gLinkScale,
         &gRupeePosition, &gRupeeScale
-    ))
+    ) && gLinkVelocity.x < 0.0f)
     {
         gLinkVelocity.x = -gLinkVelocity.x;
         // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
@@ -324,7 +336,7 @@ void update()
     if (isColliding(
         &gLinkPosition,  &gLinkScale,
         &gPiano2Position, &gPiano2Scale
-    ))
+    ) && gLinkVelocity.x > 0.0f)
     {
         gLinkVelocity.x = -gLinkVelocity.x;
         // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
@@ -341,31 +353,6 @@ void update()
         gLinkPosition.y = SCREEN_HEIGHT - (gLinkScale.y / 2.0f);
         gLinkVelocity.y = -gLinkVelocity.y;
     }
-
-    // if (gCurrPlayers == ONE)
-    // {
-        
-    //     if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f) //make ball reappear 
-    //     {
-    //         gLinkPosition = ORIGIN;
-    //     }
-    //     else if (gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH) //make ball reappear 
-    //     {
-    //         gLinkPosition = ORIGIN;
-    //         gScore += 1;
-    //         if (gScore <= 3)
-    //         {
-    //             changeScore(gScoreTexture, gScore);
-    //         }
-    //         else
-    //         {
-    //             gAppStatus = TERMINATED;
-    //         }
-    //         DrawText(TextFormat("Score: %d", gScore), 50, 50, 50, BLACK);
-    //     }
-
-    // }
-
 
     if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f) //make ball reappear 
     {
@@ -412,9 +399,7 @@ void render()
 
     // Render the rupee
     renderObject(&gRupeeTexture, &gRupeePosition, &gRupeeScale);
-
     renderObject(&gPiano2Texture, &gPiano2Position, &gPiano2Scale);
-
     renderObject(&gScoreTexture, &gScorePosition, &gScoreScale);
     renderObject(&gSecondScoreTexture, &gSecondScorePosition, &gSecondScoreScale);
     renderObject(&gLinkTexture, &gLinkPosition, &gLinkScale);
