@@ -37,8 +37,8 @@ constexpr Vector2 ORIGIN         = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 },
                   SECOND_SCORE_INIT_POS = { 800.f, 100.0f},
                   END_SCREEN_POS = ORIGIN;
 
-constexpr char LINK_FP[]  = "assets/pink_note.png";
-constexpr char RUPEE_FP[] = "assets/Piano.png";
+constexpr char PINK_NOTE[]  = "assets/pink_note.png";
+constexpr char PIANO1[] = "assets/Piano.png";
 constexpr char PIANO2[] = "assets/Piano2.png";
 constexpr char NUMBER[] = "assets/number0.png";
 constexpr char NUMBER_1[] = "assets/number1.png";
@@ -71,13 +71,13 @@ int gScore2 = 0;
 int gBallCount = 1;
 
 
-Vector2 gLinkPosition  = ORIGIN,
-        gLinkMovement  = { 0.0f, 0.0f },
-        gLinkScale     = { BASE_SIZE.x, BASE_SIZE.y},
+Vector2 gPinkNotePosition  = ORIGIN,
+        gPinkNoteMovement  = { 0.0f, 0.0f },
+        gPinkNoteScale     = { BASE_SIZE.x, BASE_SIZE.y},
 
-        gRupeePosition = RUPEE_INIT_POS,
-        gRupeeMovement = { 0.0f, 0.0f },
-        gRupeeScale    = { BASE_SIZE.x, BASE_SIZE.y},
+        gPiano1Position = RUPEE_INIT_POS,
+        gPiano1Movement = { 0.0f, 0.0f },
+        gPiano1Scale    = { BASE_SIZE.x, BASE_SIZE.y},
         gPiano2Position = PIANO2_INIT_POS,
         gPiano2Movement = { 0.0f, 0.0f },
         gPiano2Scale    = { BASE_SIZE.x, BASE_SIZE.y},
@@ -95,8 +95,8 @@ Vector2 gLinkPosition  = ORIGIN,
 
 
 
-Texture2D gLinkTexture;
-Texture2D gRupeeTexture;
+Texture2D gPinkNoteTexture;
+Texture2D gPiano1Texture;
 Texture2D gPiano2Texture;
 Texture2D gScoreTexture;
 Texture2D gSecondScoreTexture;
@@ -290,13 +290,13 @@ void renderObject(const Texture2D *texture, const Vector2 *position,
 
 void initialise()
 {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "User Input / Collision Detection");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Piano Pong!");
     InitAudioDevice();
 
     gStartTime = time(nullptr);
 
-    gLinkTexture  = LoadTexture(LINK_FP);
-    gRupeeTexture = LoadTexture(RUPEE_FP);
+    gPinkNoteTexture  = LoadTexture(PINK_NOTE);
+    gPiano1Texture = LoadTexture(PIANO2);
     gPiano2Texture = LoadTexture(PIANO2);
     gScoreTexture = LoadTexture(NUMBER);
     gSecondScoreTexture = LoadTexture(NUMBER);
@@ -315,24 +315,25 @@ void initialise()
     gPlayer1Won = LoadTexture(PLAYER1_WIN);
     gPlayer2Won = LoadTexture(PLAYER2_WIN);
     gEndScreen = gPlayer2Won;
-    gBallTexture[0] = gLinkTexture;     // pink
+    gBallTexture[0] = gPinkNoteTexture;     
     gBallTexture[1] = gBlueNote;
     gBallTexture[2] = gOrangeNote;
-    gBallTexture[3] = gLinkTexture;    
+    gBallTexture[3] = gPinkNoteTexture;    
     gBallTexture[4] = gBlueNote;
     gBallTexture[5] = gOrangeNote; 
-    gBallTexture[6] = gLinkTexture;
+    gBallTexture[6] = gPinkNoteTexture;
     gBallTexture[7] = gOrangeNote;
     
     
-    float scale_2 = fminf(BASE_SIZE.x / gRupeeTexture.width, BASE_SIZE.y / gRupeeTexture.height);
-    gRupeeScale = { gRupeeTexture.width * scale_2 *1.2f, gRupeeTexture.height * scale_2 *1.2f};
-    gLinkScale = {0.25f*(float)gLinkTexture.width, 0.25f*(float)gLinkTexture.height };
+    //to adjust sizes
+    float scale_2 = fminf(BASE_SIZE.x / gPiano1Texture.width, BASE_SIZE.y / gPiano1Texture.height);
+    gPiano1Scale = { gPiano1Texture.width * scale_2 *1.2f, gPiano1Texture.height * scale_2 *1.2f};
+    gPinkNoteScale = {0.25f*(float)gPinkNoteTexture.width, 0.25f*(float)gPinkNoteTexture.height };
     float scale_3 = fminf(BASE_SIZE.x / gPiano2Texture.width, BASE_SIZE.y / gPiano2Texture.height);
     gPiano2Scale = { gPiano2Texture.width * scale_3 *1.2f, gPiano2Texture.height * scale_3 *1.2f};
-    float scale_4 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gLinkTexture.height);
+    float scale_4 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gPinkNoteTexture.height);
     gScoreScale = { gScoreTexture.width * scale_4*2.0f, gScoreTexture.height * scale_4 *2.0f };
-    float scale_5 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gLinkTexture.height);
+    float scale_5 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gPinkNoteTexture.height);
     gSecondScoreScale = { gSecondScoreTexture.width * scale_5*2.0f, gSecondScoreTexture.height * scale_5 *2.0f };
 
 
@@ -340,7 +341,7 @@ void initialise()
     {
         gBallPosition[i] = ORIGIN;
         gBallVelocity[i] = startVel[i];
-        gBallScale[i] = gLinkScale;
+        gBallScale[i] = gPinkNoteScale;
 
     }
 
@@ -357,7 +358,7 @@ void initialise()
 
 void processInput()
 {
-    gRupeeMovement = { 0.0f, 0.0f };
+    gPiano1Movement = { 0.0f, 0.0f };
     gPiano2Movement = { 0.0f, 0.0f };
 
     if (IsKeyPressed(KEY_ONE))   gBallCount = 1;
@@ -371,16 +372,16 @@ void processInput()
 
     if (gCurrPlayers == TWO) 
     {
-        if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
-        else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
+        if      (IsKeyDown(KEY_W)) gPiano1Movement.y = -1;
+        else if (IsKeyDown(KEY_S)) gPiano1Movement.y =  1;
 
         if      (IsKeyDown(KEY_UP)) gPiano2Movement.y = -1;
         else if (IsKeyDown(KEY_DOWN)) gPiano2Movement.y =  1;
     }
     else
     {
-        if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
-        else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
+        if      (IsKeyDown(KEY_W)) gPiano1Movement.y = -1;
+        else if (IsKeyDown(KEY_S)) gPiano1Movement.y =  1;
 
 
         //automatic movement when in single player mode
@@ -399,7 +400,7 @@ void processInput()
 
     
     // to avoid faster diagonal speed
-    if (GetLength(&gRupeeMovement) > 1.0f) Normalise(&gRupeeMovement);
+    if (GetLength(&gPiano1Movement) > 1.0f) Normalise(&gPiano1Movement);
     if (GetLength(&gPiano2Movement) > 1.0f) Normalise(&gPiano2Movement);
 
 
@@ -435,10 +436,10 @@ void update()
     float deltaTime = ticks - gPreviousTicks;
     gPreviousTicks  = ticks;
 
-
-    gRupeePosition = {
-        gRupeePosition.x + SPEED * gRupeeMovement.x * deltaTime,
-        gRupeePosition.y + SPEED * gRupeeMovement.y * deltaTime
+    //piano movement
+    gPiano1Position = {
+        gPiano1Position.x + SPEED * gPiano1Movement.x * deltaTime,
+        gPiano1Position.y + SPEED * gPiano1Movement.y * deltaTime
     };
 
     gPiano2Position = {
@@ -446,12 +447,12 @@ void update()
         gPiano2Position.y + SPEED * gPiano2Movement.y * deltaTime
     };
 
-    // to keep piano on screen
-    float halfLeft = gRupeeScale.y / 2.0f;
-    if (gRupeePosition.y - halfLeft < 0.0f)
-        gRupeePosition.y = halfLeft;
-    else if (gRupeePosition.y + halfLeft > SCREEN_HEIGHT)
-        gRupeePosition.y = SCREEN_HEIGHT - halfLeft;
+    // to keep piano on screen without going completely up or down
+    float halfLeft = gPiano1Scale.y / 2.0f;
+    if (gPiano1Position.y - halfLeft < 0.0f)
+        gPiano1Position.y = halfLeft;
+    else if (gPiano1Position.y + halfLeft > SCREEN_HEIGHT)
+        gPiano1Position.y = SCREEN_HEIGHT - halfLeft;
 
     float halfRight = gPiano2Scale.y / 2.0f;
     if (gPiano2Position.y - halfRight < 0.0f)
@@ -460,6 +461,7 @@ void update()
         gPiano2Position.y = SCREEN_HEIGHT - halfRight;
 
     
+    //ball updates
     for (int i = 0; i < gBallCount; i++ ){
 
         gBallPosition[i] = {
@@ -467,12 +469,13 @@ void update()
             gBallPosition[i].y + SPEED * deltaTime * gBallVelocity[i].y
         };
 
+        //to have more precise collisions
         Vector2 hitScale = { gBallScale[i].x * 0.8f, gBallScale[i].y * 0.8f }; 
         
         //collisions
         if (isColliding(
             &gBallPosition[i],  &hitScale,
-            &gRupeePosition, &gRupeeScale
+            &gPiano1Position, &gPiano1Scale
         ) && gBallVelocity[i].x < 0.0f)
         {
             gBallVelocity[i].x = -gBallVelocity[i].x;
@@ -554,7 +557,7 @@ void render()
 
     else
     {
-        renderObject(&gRupeeTexture, &gRupeePosition, &gRupeeScale);
+        renderObject(&gPiano1Texture, &gPiano1Position, &gPiano1Scale);
         renderObject(&gPiano2Texture, &gPiano2Position, &gPiano2Scale);
         renderObject(&gScoreTexture, &gScorePosition, &gScoreScale);
         renderObject(&gSecondScoreTexture, &gSecondScorePosition, &gSecondScoreScale);
@@ -570,8 +573,8 @@ void render()
 
 void shutdown()
 {
-    UnloadTexture(gLinkTexture);
-    UnloadTexture(gRupeeTexture);
+    UnloadTexture(gPinkNoteTexture);
+    UnloadTexture(gPiano1Texture);
     UnloadTexture(gPiano2Texture);
     UnloadTexture(gNumber0Texture);
     UnloadTexture(gNumber1Texture);
