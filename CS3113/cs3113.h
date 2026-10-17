@@ -8,7 +8,7 @@
 #include <time.h>
 #include <iostream>
 
-enum AppStatus { TERMINATED, RUNNING };
+enum AppStatus { TERMINATED, RUNNING, ENDSCREEN};
 
 Color ColorFromHex(const char *hex);
 void  Normalise(Vector2 *vector);

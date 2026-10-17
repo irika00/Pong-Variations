@@ -26,11 +26,6 @@ constexpr int SCREEN_WIDTH  = 2100 / 2,
               SPEED         = 200,
               MAX_BALLS = 5;
 
-// constexpr int SCREEN_WIDTH  = 1600 / 2,
-//               SCREEN_HEIGHT = 900 / 2,
-//               FPS           = 60,
-//               SIZE          = 500 / 2,
-//               SPEED         = 200;
 
 constexpr char    BG_COLOUR[]    = "#B3ECFF";
 constexpr Vector2 ORIGIN         = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 },
@@ -49,6 +44,10 @@ constexpr char NUMBER[] = "assets/number0.png";
 constexpr char NUMBER_1[] = "assets/number1.png";
 constexpr char NUMBER_2[] = "assets/number2.png";
 constexpr char NUMBER_3[] = "assets/number3.png";
+constexpr char NUMBER_4[] = "assets/number4.png";
+constexpr char NUMBER_5[] = "assets/number5.png";
+constexpr char NUMBER_6[] = "assets/number6.png";
+constexpr char NUMBER_7[] = "assets/number7.png";
 constexpr char BLUE_NOTE[] = "assets/blue_note.png";
 constexpr char ORANGE_NOTE[] = "assets/orange_note.png";
 constexpr char PLAYER1_WIN[] = "assets/Player1win.png";
@@ -91,6 +90,7 @@ Vector2 gLinkPosition  = ORIGIN,
         gBallPosition[MAX_BALLS],
         gBallVelocity[MAX_BALLS],
         gBallScale[MAX_BALLS],
+        gEndScreenScale =  {BASE_SIZE.x, BASE_SIZE.y},
         gEndScreenPosition = END_SCREEN_POS,
 
         //gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
@@ -107,6 +107,10 @@ Texture2D gNumber0Texture;
 Texture2D gNumber1Texture;
 Texture2D gNumber2Texture;
 Texture2D gNumber3Texture;
+Texture2D gNumber4Texture;
+Texture2D gNumber5Texture;
+Texture2D gNumber6Texture;
+Texture2D gNumber7Texture;
 Texture2D gBlueNote;
 Texture2D gOrangeNote;
 Texture2D gEndScreen;
@@ -118,12 +122,14 @@ Texture2D gBallTexture[MAX_BALLS];
 
 
 Music gBGM;
-Sound gRupeeSound;
+Sound gLeftSound;
+Sound gRightSound;
+
 
 unsigned int gStartTime;
 Vector2 gLinkVelocity = { -1.0f, -0.5f };   // x: moves left, y: moves down 
 enum PLAYERS { ONE, TWO };
-PLAYERS gCurrPlayers = TWO;
+PLAYERS gCurrPlayers = TWO; 
  
 
 // Function Declarations
@@ -136,11 +142,11 @@ bool isColliding(const Vector2 *positionA, const Vector2 *scaleA, const Vector2 
 
 // Function Definitions
 
-bool endGame(int &gScore, PLAYERS &players)
+void endGame()
 {
-    if (players == ONE)
+    if (gCurrPlayers == ONE)
     {
-        if (gScore1 > 3)
+        if (gScore1 >= 7)
         {
             gEndScreen = gYouWon;
 
@@ -154,7 +160,7 @@ bool endGame(int &gScore, PLAYERS &players)
     }
     else
     {
-        if (gScore1 > 3)
+        if (gScore1 >= 7)
         {
             gEndScreen = gPlayer1Won;
 
@@ -169,7 +175,7 @@ bool endGame(int &gScore, PLAYERS &players)
 
 }
 
-bool changeScore(Texture2D &texture, int num)
+void changeScore(Texture2D &texture, int num)
 {  
     if (num == 0)
     {
@@ -193,8 +199,30 @@ bool changeScore(Texture2D &texture, int num)
     texture = gNumber3Texture;
 
    }
+   else if (num == 4)
+   {
 
-   return true;
+    texture = gNumber4Texture;
+
+   }
+   else if (num == 5)
+   {
+
+    texture = gNumber5Texture;
+
+   }
+   else if (num == 6)
+   {
+
+    texture = gNumber6Texture;
+
+   }
+   else if (num == 7)
+   {
+
+    texture = gNumber7Texture;
+
+   }
 
 }
 
@@ -269,13 +297,17 @@ void initialise()
     gNumber1Texture = LoadTexture(NUMBER_1);
     gNumber2Texture = LoadTexture(NUMBER_2);
     gNumber3Texture = LoadTexture(NUMBER_3);
+    gNumber4Texture = LoadTexture(NUMBER_4);
+    gNumber5Texture = LoadTexture(NUMBER_5);
+    gNumber6Texture = LoadTexture(NUMBER_6);
+    gNumber7Texture = LoadTexture(NUMBER_7);
     gBlueNote = LoadTexture(BLUE_NOTE);
     gOrangeNote = LoadTexture(ORANGE_NOTE);
     gYouWon = LoadTexture(YOU_WON);
     gYouLost = LoadTexture(YOU_LOST);
     gPlayer1Won = LoadTexture(PLAYER1_WIN);
     gPlayer2Won = LoadTexture(PLAYER2_WIN);
-
+    gEndScreen = gPlayer2Won;
     gBallTexture[0] = gLinkTexture;     // pink
     gBallTexture[1] = gBlueNote;
     gBallTexture[2] = gOrangeNote;
@@ -295,6 +327,7 @@ void initialise()
     float scale_5 = fminf(BASE_SIZE.x / gScoreTexture.width, BASE_SIZE.y / gLinkTexture.height);
     gSecondScoreScale = { gSecondScoreTexture.width * scale_5*2.0f, gSecondScoreTexture.height * scale_5 *2.0f };
 
+
     for (int i = 0; i < MAX_BALLS; i++)
     {
         gBallPosition[i] = ORIGIN;
@@ -304,11 +337,12 @@ void initialise()
     }
 
 
-    gBGM = LoadMusicStream("assets/game/ost.mp3");
+    gBGM = LoadMusicStream("assets/bgmusic.mp3");
     SetMusicVolume(gBGM, 0.33f);
     PlayMusicStream(gBGM);
 
-    gRupeeSound = LoadSound("assets/game/rupee.mp3");
+    gLeftSound = LoadSound("assets/b6.mp3");
+    gRightSound = LoadSound("assets/f6.mp3");
 
     SetTargetFPS(FPS);
 }
@@ -385,7 +419,6 @@ void update()
     float deltaTime = ticks - gPreviousTicks;
     gPreviousTicks  = ticks;
 
-    //gMousePosition = GetMousePosition();
 
     gRupeePosition = {
         gRupeePosition.x + SPEED * gRupeeMovement.x * deltaTime,
@@ -426,8 +459,7 @@ void update()
         ) && gBallVelocity[i].x < 0.0f)
         {
             gBallVelocity[i].x = -gBallVelocity[i].x;
-            // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
-            // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
+            if (!IsSoundPlaying(gLeftSound)) PlaySound(gLeftSound);
         }
 
         if (isColliding(
@@ -436,13 +468,12 @@ void update()
         ) && gBallVelocity[i].x > 0.0f)
         {
             gBallVelocity[i].x = -gBallVelocity[i].x;
-            // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
-            // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
+            if (!IsSoundPlaying(gRightSound)) PlaySound(gRightSound);
         }
 
         if (gBallPosition[i].y - (gBallScale[i].y / 2.0f) < 0.0f)               
         {
-            gBallPosition[i].y = gBallPosition[i].y / 2.0f;                     
+            gBallPosition[i].y = gBallScale[i].y / 2.0f;                     
             gBallVelocity[i].y = -gBallVelocity[i].y;
         }
         else if (gBallPosition[i].y + gBallScale[i].y / 2.0f > SCREEN_HEIGHT)
@@ -455,14 +486,16 @@ void update()
         {
             gBallPosition[i] = ORIGIN;
             gScore2 += 1;
-            if (gScore2 <= 3)
+            if (gScore2 < 7)
             {
+                
                 changeScore(gSecondScoreTexture, gScore2);
             }
 
             else
             {
-                gAppStatus = TERMINATED;
+                endGame();
+                gAppStatus = ENDSCREEN;
 
             }
             
@@ -471,110 +504,19 @@ void update()
         {
             gBallPosition[i] = ORIGIN;
             gScore1 += 1;
-            if (gScore1 <= 3)
+            if (gScore1 < 7)
             {
                 changeScore(gScoreTexture, gScore1);
             }
             else
             {
-                gAppStatus = TERMINATED;
+                endGame();
+                gAppStatus = ENDSCREEN;
             }
             
         }
 
     }
-
-    // gRupeePosition = {
-    //     gRupeePosition.x + SPEED * gRupeeMovement.x * deltaTime,
-    //     gRupeePosition.y + SPEED * gRupeeMovement.y * deltaTime
-    // };
-
-    // gPiano2Position = {
-    //     gPiano2Position.x + SPEED * gPiano2Movement.x * deltaTime,
-    //     gPiano2Position.y + SPEED * gPiano2Movement.y * deltaTime
-    // };
-
-    // gLinkPosition = {
-    //     gLinkPosition.x+ SPEED * deltaTime * gLinkVelocity.x,
-    //     gLinkPosition.y + SPEED * deltaTime * gLinkVelocity.y
-    // };
-
-    // // to keep piano on screen
-    // float halfLeft = gRupeeScale.y / 2.0f;
-    // if (gRupeePosition.y - halfLeft < 0.0f)
-    //     gRupeePosition.y = halfLeft;
-    // else if (gRupeePosition.y + halfLeft > SCREEN_HEIGHT)
-    //     gRupeePosition.y = SCREEN_HEIGHT - halfLeft;
-
-    // float halfRight = gPiano2Scale.y / 2.0f;
-    // if (gPiano2Position.y - halfRight < 0.0f)
-    //     gPiano2Position.y = halfRight;
-    // else if (gPiano2Position.y + halfRight > SCREEN_HEIGHT)
-    //     gPiano2Position.y = SCREEN_HEIGHT - halfRight;
-
-
-    // //collisions
-    // if (isColliding(
-    //     &gLinkPosition,  &gLinkScale,
-    //     &gRupeePosition, &gRupeeScale
-    // ) && gLinkVelocity.x < 0.0f)
-    // {
-    //     gLinkVelocity.x = -gLinkVelocity.x;
-    //     // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
-    //     // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
-    // }
-
-    // if (isColliding(
-    //     &gLinkPosition,  &gLinkScale,
-    //     &gPiano2Position, &gPiano2Scale
-    // ) && gLinkVelocity.x > 0.0f)
-    // {
-    //     gLinkVelocity.x = -gLinkVelocity.x;
-    //     // printf("Collision @ %us in game time.\n", static_cast<unsigned>(time(nullptr)) - gStartTime);
-    //     // if (!IsSoundPlaying(gRupeeSound)) PlaySound(gRupeeSound);
-    // }
-
-    // if (gLinkPosition.y - (gLinkScale.y / 2.0f) < 0.0f)               
-    // {
-    //     gLinkPosition.y = gLinkScale.y / 2.0f;                     
-    //     gLinkVelocity.y = -gLinkVelocity.y; 
-    // }
-    // else if (gLinkPosition.y + (gLinkScale.y / 2.0f) > SCREEN_HEIGHT) 
-    // {
-    //     gLinkPosition.y = SCREEN_HEIGHT - (gLinkScale.y / 2.0f);
-    //     gLinkVelocity.y = -gLinkVelocity.y;
-    // }
-
-    // if (gLinkPosition.x + gLinkScale.x / 2.0f < 0.0f) //make ball reappear 
-    // {
-    //     gLinkPosition = ORIGIN;
-    //     gScore2 += 1;
-    //     if (gScore2 <= 3)
-    //     {
-    //         changeScore(gSecondScoreTexture, gScore2);
-    //     }
-
-    //     else
-    //     {
-    //         gAppStatus = TERMINATED;
-
-    //     }
-        
-    // }
-    // else if (gLinkPosition.x - gLinkScale.x / 2.0f > SCREEN_WIDTH) //make ball reappear 
-    // {
-    //     gLinkPosition = ORIGIN;
-    //     gScore1 += 1;
-    //     if (gScore1 <= 3)
-    //     {
-    //         changeScore(gScoreTexture, gScore1);
-    //     }
-    //     else
-    //     {
-    //         gAppStatus = TERMINATED;
-    //     }
-        
-    // }
 
 
     UpdateMusicStream(gBGM);
@@ -586,20 +528,24 @@ void render()
     ClearBackground(ColorFromHex(BG_COLOUR));
 
     
-    renderObject(&gRupeeTexture, &gRupeePosition, &gRupeeScale);
-    renderObject(&gPiano2Texture, &gPiano2Position, &gPiano2Scale);
-    renderObject(&gScoreTexture, &gScorePosition, &gScoreScale);
-    renderObject(&gSecondScoreTexture, &gSecondScorePosition, &gSecondScoreScale);
-    // renderObject(&gLinkTexture, &gLinkPosition, &gLinkScale);
-    for (int i = 0; i < gBallCount; i++)
+
+    if (gAppStatus == ENDSCREEN)
     {
-    renderObject(&gBallTexture[i], &gBallPosition[i], &gBallScale[i]);
+        Vector2 screentex = {static_cast<float> (gEndScreen.width), static_cast<float>(gEndScreen.height)};
+        renderObject(&gEndScreen, &gEndScreenPosition, &screentex);
     }
 
-    if (gAppStatus == TERMINATED)
+    else
     {
-        Vector2 screentex = {static_cast<float> (gEndScreen.height), static_cast<float>(gEndScreen.width)};
-        renderObject(&gEndScreen, &gEndScreenPosition, &screentex);
+        renderObject(&gRupeeTexture, &gRupeePosition, &gRupeeScale);
+        renderObject(&gPiano2Texture, &gPiano2Position, &gPiano2Scale);
+        renderObject(&gScoreTexture, &gScorePosition, &gScoreScale);
+        renderObject(&gSecondScoreTexture, &gSecondScorePosition, &gSecondScoreScale);
+        for (int i = 0; i < gBallCount; i++)
+        {
+        renderObject(&gBallTexture[i], &gBallPosition[i], &gBallScale[i]);
+        }
+
     }
 
     EndDrawing();
@@ -614,8 +560,13 @@ void shutdown()
     UnloadTexture(gNumber1Texture);
     UnloadTexture(gNumber2Texture);
     UnloadTexture(gNumber3Texture);
+    UnloadTexture(gNumber4Texture);
+    UnloadTexture(gNumber5Texture);
+    UnloadTexture(gNumber6Texture);
+    UnloadTexture(gNumber7Texture);
     UnloadMusicStream(gBGM);
-    UnloadSound(gRupeeSound);
+    UnloadSound(gRightSound);
+    UnloadSound(gLeftSound);
     CloseAudioDevice();
     CloseWindow();
 }
@@ -624,10 +575,16 @@ int main(void)
 {
     initialise();
 
-    while (gAppStatus == RUNNING || gAppStatus == TERMINATED)
+    while (gAppStatus == RUNNING)
     {
         processInput();
         update();
+        render();
+    }
+
+    while (gAppStatus == ENDSCREEN)
+    {
+        processInput();
         render();
     }
 
