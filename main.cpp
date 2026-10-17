@@ -24,7 +24,7 @@ constexpr int SCREEN_WIDTH  = 2100 / 2,
               FPS           = 60,
               SIZE          = 500 / 2,
               SPEED         = 200,
-              MAX_BALLS = 5;
+              MAX_BALLS = 8;
 
 
 constexpr char    BG_COLOUR[]    = "#B3ECFF";
@@ -58,7 +58,7 @@ constexpr char YOU_LOST[] = "assets/youlost.png";
 
 Vector2 startVel[MAX_BALLS] = {
     { -1.0f,  0.15f }, { 1.0f, -0.2f }, { -1.0f, -0.1f },
-    {  1.2f,  0.25f }, { -0.35f, 1.05f }
+    {  1.2f,  0.25f }, { -0.35f, 1.05f }, { -0.25f, -1.05f }, { 1.35f, 1.05f }, { 0.35f, 1.05f }
 };
 
 // Global Variables
@@ -124,7 +124,6 @@ Sound gRightSound;
 
 
 unsigned int gStartTime;
-Vector2 gLinkVelocity = { -1.0f, -0.5f };   // x: moves left, y: moves down 
 enum PLAYERS { ONE, TWO };
 PLAYERS gCurrPlayers = TWO; 
  
@@ -139,6 +138,10 @@ bool isColliding(const Vector2 *positionA, const Vector2 *scaleA, const Vector2 
 
 // Function Definitions
 
+
+/**
+ * @brief Displays ending screen based on score
+ */
 void endGame()
 {
     if (gCurrPlayers == ONE)
@@ -172,6 +175,13 @@ void endGame()
 
 }
 
+/**
+ * @brief Changes the score visual based on numerical score
+ *
+ * @param texture The current score texture
+ * @param num The value of the current score
+
+ */
 void changeScore(Texture2D &texture, int num)
 {  
     if (num == 0)
@@ -310,10 +320,11 @@ void initialise()
     gBallTexture[2] = gOrangeNote;
     gBallTexture[3] = gLinkTexture;    
     gBallTexture[4] = gBlueNote;
+    gBallTexture[5] = gOrangeNote; 
+    gBallTexture[6] = gLinkTexture;
+    gBallTexture[7] = gOrangeNote;
     
     
-    float scale_1 = fminf(BASE_SIZE.x / gLinkTexture.width, BASE_SIZE.y / gLinkTexture.height);
-    gLinkScale = { gLinkTexture.width * scale_1, gLinkTexture.height * scale_1 };
     float scale_2 = fminf(BASE_SIZE.x / gRupeeTexture.width, BASE_SIZE.y / gRupeeTexture.height);
     gRupeeScale = { gRupeeTexture.width * scale_2 *1.2f, gRupeeTexture.height * scale_2 *1.2f};
     gLinkScale = {0.25f*(float)gLinkTexture.width, 0.25f*(float)gLinkTexture.height };
@@ -354,6 +365,9 @@ void processInput()
     if (IsKeyPressed(KEY_THREE)) gBallCount = 3;
     if (IsKeyPressed(KEY_FOUR))  gBallCount = 4;
     if (IsKeyPressed(KEY_FIVE))  gBallCount = 5;
+    if (IsKeyPressed(KEY_SIX))  gBallCount = 6;
+    if (IsKeyPressed(KEY_SEVEN))  gBallCount = 7;
+    if (IsKeyPressed(KEY_EIGHT))  gBallCount = 8;
 
     if (gCurrPlayers == TWO) 
     {
@@ -445,6 +459,7 @@ void update()
     else if (gPiano2Position.y + halfRight > SCREEN_HEIGHT)
         gPiano2Position.y = SCREEN_HEIGHT - halfRight;
 
+    
     for (int i = 0; i < gBallCount; i++ ){
 
         gBallPosition[i] = {
@@ -452,11 +467,11 @@ void update()
             gBallPosition[i].y + SPEED * deltaTime * gBallVelocity[i].y
         };
 
-
-
+        Vector2 hitScale = { gBallScale[i].x * 0.8f, gBallScale[i].y * 0.8f }; 
+        
         //collisions
         if (isColliding(
-            &gBallPosition[i],  &gBallScale[i],
+            &gBallPosition[i],  &hitScale,
             &gRupeePosition, &gRupeeScale
         ) && gBallVelocity[i].x < 0.0f)
         {
@@ -465,7 +480,7 @@ void update()
         }
 
         if (isColliding(
-            &gBallPosition[i],  &gBallScale[i],
+            &gBallPosition[i],  &hitScale,
             &gPiano2Position, &gPiano2Scale
         ) && gBallVelocity[i].x > 0.0f)
         {
@@ -566,6 +581,7 @@ void shutdown()
     UnloadTexture(gNumber5Texture);
     UnloadTexture(gNumber6Texture);
     UnloadTexture(gNumber7Texture);
+    UnloadTexture(gEndScreen);
     UnloadMusicStream(gBGM);
     UnloadSound(gRightSound);
     UnloadSound(gLeftSound);
