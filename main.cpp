@@ -91,12 +91,9 @@ Vector2 gLinkPosition  = ORIGIN,
         gBallVelocity[MAX_BALLS],
         gBallScale[MAX_BALLS],
         gEndScreenScale =  {BASE_SIZE.x, BASE_SIZE.y},
-        gEndScreenPosition = END_SCREEN_POS,
+        gEndScreenPosition = END_SCREEN_POS;
 
-        //gRupeeScale    = { BASE_SIZE.x / 2.0f, BASE_SIZE.y / 2.0f * 1.6f },
-        //gRupeeScale    = { BASE_SIZE.x / 3.5f, BASE_SIZE.y / 3.5f},
 
-        gMousePosition = GetMousePosition();
 
 Texture2D gLinkTexture;
 Texture2D gRupeeTexture;
@@ -146,7 +143,7 @@ void endGame()
 {
     if (gCurrPlayers == ONE)
     {
-        if (gScore1 >= 7)
+        if (gScore1 >= 8)
         {
             gEndScreen = gYouWon;
 
@@ -160,7 +157,7 @@ void endGame()
     }
     else
     {
-        if (gScore1 >= 7)
+        if (gScore1 >= 8)
         {
             gEndScreen = gPlayer1Won;
 
@@ -371,14 +368,19 @@ void processInput()
         if      (IsKeyDown(KEY_W)) gRupeeMovement.y = -1;
         else if (IsKeyDown(KEY_S)) gRupeeMovement.y =  1;
 
-        if (gBallVelocity[0].x > 0.0f)
-        {
-            float diff = gBallPosition[0].y - gPiano2Position.y;
 
-            if      (diff >  10.0f) gPiano2Movement.y =  1.0f;
-            else if (diff < -10.0f) gPiano2Movement.y = -1.0f;
+        //automatic movement when in single player mode
+        int target = 0;
+        for (int i = 1; i < gBallCount; i++)
+        {
+            if (gBallPosition[i].x > gBallPosition[target].x) target = i;
         }
 
+        float diff = gBallPosition[target].y - gPiano2Position.y;
+
+        if      (diff >  10.0f) gPiano2Movement.y =  1.0f;
+        else if (diff < -10.0f) gPiano2Movement.y = -1.0f;
+        
     }
 
     
@@ -486,7 +488,7 @@ void update()
         {
             gBallPosition[i] = ORIGIN;
             gScore2 += 1;
-            if (gScore2 < 7)
+            if (gScore2 < 8)
             {
                 
                 changeScore(gSecondScoreTexture, gScore2);
@@ -504,7 +506,7 @@ void update()
         {
             gBallPosition[i] = ORIGIN;
             gScore1 += 1;
-            if (gScore1 < 7)
+            if (gScore1 < 8)
             {
                 changeScore(gScoreTexture, gScore1);
             }
